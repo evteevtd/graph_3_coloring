@@ -316,7 +316,6 @@ pair<vector<SubGraph>, int> list_subgraphs(Graph graph) {
     auto res4 = list_cliques(graph, edge_indexer, 4);
     auto res5 = list_cliques(graph, edge_indexer, 5);
     auto res6 = list_cliques(graph, edge_indexer, 6);
-    // auto res7 = list_cliques(graph, edge_indexer, 7);
 
     auto res = unite({res4, res5, res6});//, res6, res7});
 
