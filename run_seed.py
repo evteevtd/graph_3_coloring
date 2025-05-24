@@ -59,12 +59,12 @@ with open(filename, 'w') as ouf:
 def compile(name):
 	stat = os.system(f"g++ {name}.cpp -o build/{name} -O3 -ffast-math 2> /dev/null")
 
-print("running upper_bound")
+# print("running upper_bound")
 
 upper_bound = "upper_bound_with_retry"
-compile(upper_bound)
+# compile(upper_bound)
 
-os.system(f"./build/{upper_bound} {filename} > results/{upper_bound}_{graph_name}_result")
+# os.system(f"./build/{upper_bound} {filename} > results/{upper_bound}_{graph_name}_result")
 
 print("running lower_bound")
 

@@ -23,5 +23,5 @@ signed main(int argc, char* argv[]) {
 
     cerr << "time = " << slow_timer() << '\n';
 
-    cout << "lower_bound = " <<sum << '\n';
+    cout << "lower_bound = " << sum << '\n';
 }

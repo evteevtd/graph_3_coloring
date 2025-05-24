@@ -3,7 +3,7 @@
 #include "gen.hpp"
 #include "list_subgraphs.hpp"
 
-pair<fast_fp, vector<int>> simple_baseline(vector<SubGraph> s, int max_edge) {
+pair<fast_fp, vector<int>> simple_baseline(const vector<SubGraph>& s, int max_edge) {
     vector<int> res(s.size());
     fast_fp sum = 0;
 
@@ -32,7 +32,7 @@ pair<fast_fp, vector<int>> simple_baseline(vector<SubGraph> s, int max_edge) {
     return {sum, res};
 }
 
-vector<fast_fp> iterate_priority(vector<SubGraph> s, int max_edge, vector<fast_fp> priority) {
+vector<fast_fp> iterate_priority(const vector<SubGraph>& s, int max_edge, vector<fast_fp> priority) {
     vector<int> taken;
     vector<int> edge_is_taken;
 
@@ -83,7 +83,7 @@ struct TwoMax {
     }
 };
 
-vector<fast_fp> iterate_priority_by_max(vector<SubGraph> s, int max_edge, vector<fast_fp> priority) {
+vector<fast_fp> iterate_priority_by_max(const vector<SubGraph>& s, int max_edge, vector<fast_fp> priority) {
     vector<int> taken;
     vector<int> edge_is_taken;
 
@@ -113,7 +113,7 @@ vector<fast_fp> iterate_priority_by_max(vector<SubGraph> s, int max_edge, vector
     return new_priority;
 }
 
-vector<int> priority_sort(vector<SubGraph> s, int max_edge, int iterate = 1) {
+vector<int> priority_sort(const vector<SubGraph>& s, int max_edge, int iterate = 1) {
     vector<int> taken;
     vector<int> edge_is_taken;
 
@@ -125,6 +125,7 @@ vector<int> priority_sort(vector<SubGraph> s, int max_edge, int iterate = 1) {
     vector<fast_fp> priority(s.size());
     for (int i = 0; i < s.size(); ++i) {
         priority[i] = s[i].min_cost;
+        priority[i] /= pow((s[i].e.size() + 2), 0.5);
     }
     for (int it = 0; it < iterate; ++it) {
         priority = iterate_priority(s, max_edge, priority);
@@ -134,16 +135,13 @@ vector<int> priority_sort(vector<SubGraph> s, int max_edge, int iterate = 1) {
     iota(all(ind), 0);
 
     sort(all(ind), [&](int lhs, int rhs) {
-        // if (s[lhs].e.size() != s[rhs].e.size()) {
-        //     return s[lhs].e.size() < s[rhs].e.size();
-        // }
         return priority[lhs] > priority[rhs];
     });
 
     return ind;
 }
 
-vector<int> priority_sort_by_max(vector<SubGraph> s, int max_edge, int iterate = 1) {
+vector<int> priority_sort_by_max(const vector<SubGraph>& s, int max_edge, int iterate = 1) {
     vector<int> taken;
     vector<int> edge_is_taken;
 
@@ -170,7 +168,7 @@ vector<int> priority_sort_by_max(vector<SubGraph> s, int max_edge, int iterate =
     return ind;
 }
 
-pair<fast_fp, vector<int>> greedy_static(vector<SubGraph> s, int max_edge) {
+pair<fast_fp, vector<int>> greedy_static(const vector<SubGraph>& s, int max_edge) {
     vector<int> taken;
     vector<int> edge_is_taken;
 
@@ -199,7 +197,7 @@ pair<fast_fp, vector<int>> greedy_static(vector<SubGraph> s, int max_edge) {
     return {cur_sum, taken};
 }
 
-pair<fast_fp, vector<int>> greedy_static_retry(vector<SubGraph> s, int max_edge) {
+pair<fast_fp, vector<int>> greedy_static_retry(const vector<SubGraph>& s, int max_edge) {
     vector<int> taken;
     vector<int> edge_is_taken_by;
 
@@ -255,7 +253,7 @@ pair<fast_fp, vector<int>> greedy_static_retry(vector<SubGraph> s, int max_edge)
 }
 
 
-pair<fast_fp, vector<int>> greedy_static_by_max(vector<SubGraph> s, int max_edge) {
+pair<fast_fp, vector<int>> greedy_static_by_max(const vector<SubGraph>& s, int max_edge) {
     vector<int> taken;
     vector<int> edge_is_taken;
 
@@ -285,7 +283,7 @@ pair<fast_fp, vector<int>> greedy_static_by_max(vector<SubGraph> s, int max_edge
 }
 
 
-pair<fast_fp, vector<int>> greedy_dynamic(vector<SubGraph> s, int max_edge) {
+pair<fast_fp, vector<int>> greedy_dynamic(const vector<SubGraph>& s, int max_edge) {
     vector<int> taken;
     vector<int> edge_is_taken;
 

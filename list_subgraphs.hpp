@@ -106,14 +106,24 @@ vector<SubGraph> list_quads(Graph graph, auto& edge_indexer) {
 SubGraph from_vert(vector<int> vert, const Graph& graph, auto& edge_indexer) {
     SubGraph res;
     vector<vector<fast_fp>> c(vert.size(), vector<fast_fp>(vert.size(), 0));
+    res.e.reserve(vert.size() * (vert.size() - 1));
+
+    fast_fp sum_c = 0;
+
     for (int i = 0; i < vert.size(); ++i) {
-        for (int j = 0; j < vert.size(); ++j) {
+        for (int j = i + 1; j < vert.size(); ++j) {
             if (edge_indexer.find({vert[i], vert[j]}) == edge_indexer.end()) continue;
             auto [id, cost] = edge_indexer[{vert[i], vert[j]}];
             res.e.push_back(id);
-            c[i][j] = cost;   
+            // res.e.push_back(id);
+            c[i][j] = cost;
+            c[j][i] = cost;
+            sum_c += cost;
         }
     }
+    // cerr << vert.size() << res.e.size() << '\n';
+    res.e.shrink_to_fit();
+    res.sum_c = sum_c;
 
     fast_fp best = inf;
     vector<int> coloring(vert.size());
@@ -301,8 +311,9 @@ vector<SubGraph> unite(vector<vector<SubGraph>> v) {
 pair<vector<SubGraph>, int> list_subgraphs(Graph graph) {
     auto edge_indexer = get_edge_indexer(graph);
 
-    auto res4 = list_quads(graph, edge_indexer);
+    // auto res4 = list_quads(graph, edge_indexer);
     // auto res5_w1 = list_almost_cliques(graph, edge_indexer, 5);
+    auto res4 = list_cliques(graph, edge_indexer, 4);
     auto res5 = list_cliques(graph, edge_indexer, 5);
     auto res6 = list_cliques(graph, edge_indexer, 6);
     // auto res7 = list_cliques(graph, edge_indexer, 7);
