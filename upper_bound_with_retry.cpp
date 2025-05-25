@@ -28,7 +28,11 @@ struct Coloring {
 
     pair<int, int> gen_step() {
         int v = rng() % g.n;
-        return {v, rng() % 3};
+        int c = rng() % 3;
+        while (coloring[v] == c) {
+            c = rng() % 3;
+        }
+        return {v, c};
     }
 
     fast_fp if_chagne(int v, int new_c) {
@@ -55,6 +59,21 @@ struct Coloring {
             return g[v].size();
         }
         return 0;
+    }
+
+    void reset() {
+        sum_w_by_color.assign(g.n, array<fast_fp, 3>{0, 0, 0});
+        cur_error = 0;
+
+        for (int i = 0; i < g.n; ++i) {
+            for (auto e : g[i]) {
+                sum_w_by_color[e.u][coloring[e.v]] += e.w;
+                if (coloring[e.u] == coloring[e.v]) {
+                    cur_error += e.w;
+                }
+            }
+        }
+        cur_error /= 2;
     }
 };
 
@@ -133,7 +152,8 @@ signed main(int argc, char* argv[]) {
                 cerr << "ticks/sec = " << ticks / log_freq << '\n';
                 op = 0;
                 ticks = 0;
-                // recount error?
+
+                coloring.reset();
             }
         }
 

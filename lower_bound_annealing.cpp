@@ -10,11 +10,14 @@ struct IndSet {
     vector<int> taken;
     vector<int> edge_is_taken_by;
     vector<vector<int>> subgraphs_by_edge;
+    vector<fast_fp> sum_taken_neighbors;
 
     fast_fp cur_sum = 0;
 
     vector<uint64_t> used;
+    vector<uint64_t> used2;
     uint64_t used_it = 1;
+    uint64_t used_it2 = 1;
 
     IndSet() {}
 
@@ -26,6 +29,8 @@ struct IndSet {
             }
         }
         used.resize(s.size());
+        used2.resize(s.size());
+        sum_taken_neighbors.resize(s.size(), 0);
 
         edge_is_taken_by.resize(max_edge, -1);
 
@@ -35,6 +40,7 @@ struct IndSet {
             for (auto ei : s[i].e) {
                 edge_is_taken_by[ei] = i;
             }
+            switch_taken(i);
         }
     }
 
@@ -47,18 +53,34 @@ struct IndSet {
     }
 
     fast_fp if_chagne(int i) {
-        auto ss = s[i];
-        fast_fp sum = 0;
+        // auto ss = s[i];
+        // fast_fp sum = 0;
         
-        ++used_it;
-        for (auto ei : ss.e) {
-            if (edge_is_taken_by[ei] == -1 || used[edge_is_taken_by[ei]] == used_it)
-                continue;
-            used[edge_is_taken_by[ei]] = used_it;
-            sum += s[edge_is_taken_by[ei]].min_cost;
-        }
-        return cur_sum + ss.min_cost - sum;
+        // ++used_it;
+        // for (auto ei : ss.e) {
+        //     if (edge_is_taken_by[ei] == -1 || used[edge_is_taken_by[ei]] == used_it)
+        //         continue;
+        //     used[edge_is_taken_by[ei]] = used_it;
+        //     sum += s[edge_is_taken_by[ei]].min_cost;
+        // }
+        // return cur_sum + ss.min_cost - sum;
+
+        return cur_sum + s[i].min_cost - sum_taken_neighbors[i];
     };
+
+    void switch_taken(int i) {
+        int coef = taken[i] ? 1 : -1;
+        ++used_it2;
+
+        used2[i] = used_it2;
+        for (auto ei : s[i].e) {
+            for (int j : subgraphs_by_edge[ei]) {
+                if (used2[j] == used_it2) continue;
+                used2[j] = used_it2;
+                sum_taken_neighbors[j] += coef * s[i].min_cost;
+            }
+        }
+    }
 
     int change(int i, fast_fp new_sum) {
         cur_sum = new_sum;
@@ -76,11 +98,13 @@ struct IndSet {
                 edge_is_taken_by[ei] = -1;
             }
             taken[oth] = 0;
+            switch_taken(oth);
         }
         for (auto ei : ss.e) {
             edge_is_taken_by[ei] = i;
         }
         taken[i] = 1;
+        switch_taken(i);
         return op_cnt;
     }
 
@@ -93,6 +117,16 @@ struct IndSet {
             return change(i, new_sum);
         }
         return 0;
+    }
+
+    void reset() {
+        sum_taken_neighbors.assign(s.size(), 0);
+        cur_sum = 0;
+        for (int i = 0; i < s.size(); ++i) {
+            if (!taken[i]) continue;
+            cur_sum += s[i].min_cost;
+            switch_taken(i);
+        }
     }
 };
 
@@ -117,9 +151,9 @@ signed main(int argc, char* argv[]) {
 
     auto indset = IndSet(subgraphs, emax, taken);
 
-    double start_tmp = (double)indset.cur_sum / accumulate(all(taken), 0);
-    double end_tmp = start_tmp / 200;
-    double TL = 500; // sec
+    double start_tmp = (double)indset.cur_sum / accumulate(all(taken), 0) / 3;
+    double end_tmp = start_tmp / 40;
+    double TL = 60 * 15; // sec
 
     double k = log(end_tmp / start_tmp) / TL;
 
@@ -137,6 +171,8 @@ signed main(int argc, char* argv[]) {
     // vector<int> best_taken = taken;
     double best_sum = indset.cur_sum;
 
+    double log_freq = 60; // sec
+
     while (fast_timer() - start_time < TL) {
         ++total_steps;
         ++op;
@@ -149,19 +185,20 @@ signed main(int argc, char* argv[]) {
             times_upd_best++;
 
             // best_taken = indset.taken;
+            // recalc?
             best_sum = indset.cur_sum;
         }
 
-        if (fast_timer() > last_time + 1) {
+        if (fast_timer() > last_time + log_freq) {
             last_time = fast_timer();
 
             cerr << "cur sum = " << indset.cur_sum << " cur_t = " << tmp << "; ";
-            cerr << "operations/sec = " << op << ";  ";
-            cerr << "ticks/sec = " << ticks << '\n';
+            cerr << "operations/sec = " << op  / log_freq << ";  ";
+            cerr << "ticks/sec = " << ticks / log_freq << '\n';
             op = 0;
             ticks = 0;
 
-            // recount error?
+            indset.reset();
         }
     }
 
@@ -173,5 +210,6 @@ signed main(int argc, char* argv[]) {
 
     cerr << "time = " << slow_timer() << '\n';
 
+    // recalc?
     cout << "lower_bound = " << best_sum << '\n';
 }

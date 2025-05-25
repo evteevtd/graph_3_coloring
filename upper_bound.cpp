@@ -28,7 +28,11 @@ struct Coloring {
 
     pair<int, int> gen_step() {
         int v = rng() % g.n;
-        return {v, rng() % 3};
+        int c = rng() % 3;
+        while (coloring[v] == c) {
+            c = rng() % 3;
+        }
+        return {v, c};
     }
 
     fast_fp if_chagne(int v, int new_c) {

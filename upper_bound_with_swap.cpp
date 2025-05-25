@@ -44,6 +44,9 @@ struct Coloring {
             res.type = StepType::clrChange;
             res.v = rng() % g.n;
             res.c = rng() % 3;
+            while (coloring[res.v] == res.c) {
+                res.c = rng() % 3;
+            }
         } else {
             res.type = StepType::clrSwap;
             int u = rng() % g.n;

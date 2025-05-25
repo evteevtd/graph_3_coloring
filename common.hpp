@@ -165,7 +165,6 @@ fast_fp evaluate(const Graph& g, vector<int> coloring, bool print = false) {
 struct SubGraph {
     vector<int> e;  // edge indexes
     fast_fp min_cost;
-    fast_fp sum_c;
 };
 
 
