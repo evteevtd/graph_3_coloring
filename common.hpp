@@ -154,9 +154,10 @@ fast_fp evaluate(const Graph& g, vector<int> coloring, bool print = false) {
         std::cout << "score: " << score << '\n';
         std::cerr << "score: " << score << '\n';
     
-        // for (int c : coloring) {
-        //     std::cout << c << ' ';
-        // }
+        for (int c : coloring) {
+            std::cout << c << ' ';
+        }
+        std::cout << '\n';
     }
 
     return score;

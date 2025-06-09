@@ -60,6 +60,21 @@ struct Coloring {
         }
         return 0;
     }
+
+    void reset() {
+        sum_w_by_color.assign(g.n, array<fast_fp, 3>{0, 0, 0});
+        cur_error = 0;
+
+        for (int i = 0; i < g.n; ++i) {
+            for (auto e : g[i]) {
+                sum_w_by_color[e.u][coloring[e.v]] += e.w;
+                if (coloring[e.u] == coloring[e.v]) {
+                    cur_error += e.w;
+                }
+            }
+        }
+        cur_error /= 2;
+    }
 };
 
 vector<int> baseline(Graph g) {
@@ -91,7 +106,7 @@ signed main(int argc, char* argv[]) {
 
     double start_tmp = (double)coloring.cur_error / n;
     double end_tmp = start_tmp / 300;
-    double TL = 30; // sec
+    double TL = 28 * 60; // sec
 
     double k = log(end_tmp / start_tmp) / TL;
 
@@ -109,6 +124,8 @@ signed main(int argc, char* argv[]) {
     vector<int> best_coloring = base_coloring;
     double best_error = coloring.cur_error;
 
+    double log_freq = 20; // sec
+
     while (fast_timer() - start_time < TL) {
         ++total_steps;
         ++op;
@@ -124,16 +141,16 @@ signed main(int argc, char* argv[]) {
             best_error = coloring.cur_error;
         }
 
-        if (fast_timer() > last_time + 1) {
+        if (fast_timer() > last_time + log_freq) {
             last_time = fast_timer();
 
             cerr << "cur error = " << coloring.cur_error << " cur_t = " << tmp << "; ";
-            cerr << "operations/sec = " << op << ";  ";
-            cerr << "ticks/sec = " << ticks << '\n';
+            cerr << "operations/sec = " << op / log_freq << ";  ";
+            cerr << "ticks/sec = " << ticks / log_freq << '\n';
             op = 0;
             ticks = 0;
 
-            // recount error?
+            coloring.reset();
         }
     }
 

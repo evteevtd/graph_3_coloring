@@ -111,7 +111,7 @@ signed main(int argc, char* argv[]) {
     long long total_steps = 0;
     long long times_upd_best = 0;
 
-    double log_freq = 10; // sec
+    double log_freq = 20; // sec
 
     for (int it = 0; it < 10; ++it) {
 
