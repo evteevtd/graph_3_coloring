@@ -128,20 +128,26 @@ struct IndSet {
             switch_taken(i);
         }
     }
+
+    vector<SubGraph> extract(vector<int> actual_taken) {
+        vector<SubGraph> res;
+        for (int i = 0; i < actual_taken.size(); ++i) {
+            if (actual_taken[i] == 1) {
+                res.push_back(s[i]);
+            }
+        }
+        return res;
+    }
 };
 
 signed main(int argc, char* argv[]) {
     Graph g;
 
-    if (argc == 1) {
-        int n = 20000;
-        int max_neighbors = 60;
-        fast_fp p_connection = 0.5;
+    g.read(argv[1]);
 
-        rng.seed(43);
-        g = gen(n, max_neighbors, p_connection);
-    } else {
-        g.read(argv[1]);
+    double GLOBAL_TL = 60;  // seconds    
+    if (argc >= 3) {
+        GLOBAL_TL = std::stof(argv[2]);
     }
 
     int n = g.n;
@@ -153,12 +159,13 @@ signed main(int argc, char* argv[]) {
 
     double start_tmp = (double)indset.cur_sum / accumulate(all(taken), 0) / 3;
     double end_tmp = start_tmp / 40;
-    double TL = 60 * 15; // sec
+    double TL = GLOBAL_TL; // sec
 
     double k = log(end_tmp / start_tmp) / TL;
 
     cerr << "start temperature = " << start_tmp << '\n';
     cerr << "start sum = " << indset.cur_sum << '\n';
+    cerr << "expected run time : " << GLOBAL_TL << " seconds\n";
 
     auto start_time = fast_timer();
     auto last_time = fast_timer();
@@ -168,10 +175,10 @@ signed main(int argc, char* argv[]) {
     long long total_steps = 0;
     long long times_upd_best = 0;
 
-    // vector<int> best_taken = taken;
+    vector<int> best_taken = taken;
     double best_sum = indset.cur_sum;
 
-    double log_freq = 60; // sec
+    double log_freq = 30; // sec
 
     while (fast_timer() - start_time < TL) {
         ++total_steps;
@@ -184,8 +191,7 @@ signed main(int argc, char* argv[]) {
         if (indset.cur_sum > best_sum) {
             times_upd_best++;
 
-            // best_taken = indset.taken;
-            // recalc?
+            best_taken = indset.taken;
             best_sum = indset.cur_sum;
         }
 
@@ -210,6 +216,8 @@ signed main(int argc, char* argv[]) {
 
     cerr << "time = " << slow_timer() << '\n';
 
-    // recalc?
-    cout << "lower_bound = " << best_sum << '\n';
+    // cout << "lower_bound = " << best_sum << '\n';
+
+    auto proof = indset.extract(best_taken);
+    evaluate(g, proof, true);
 }

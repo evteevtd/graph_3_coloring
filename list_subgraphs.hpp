@@ -3,16 +3,6 @@
 #include <bits/stdc++.h>
 #include "common.hpp"
 
-unmap_pii<pair<int, fast_fp>> get_edge_indexer(Graph g) {
-    unmap_pii<pair<int, fast_fp>> res;
-    for (int i = 0; i < g.edge_list.size(); ++i) {
-        auto e = g.edge_list[i];
-        assert(res.find({e.u, e.v}) == res.end());
-        res[{e.u, e.v}] = {i, e.w};
-        res[{e.v, e.u}] = {i, e.w};
-    }
-    return res;
-}
 
 vector<SubGraph> list_quads(Graph graph, auto& edge_indexer) {
     int n = graph.n;
@@ -103,6 +93,17 @@ vector<SubGraph> list_quads(Graph graph, auto& edge_indexer) {
     return res;
 }
 
+unmap_pii<pair<int, fast_fp>> get_edge_indexer(Graph g) {
+    unmap_pii<pair<int, fast_fp>> res;
+    for (int i = 0; i < g.edge_list.size(); ++i) {
+        auto e = g.edge_list[i];
+        assert(res.find({e.u, e.v}) == res.end());
+        res[{e.u, e.v}] = {i, e.w};
+        res[{e.v, e.u}] = {i, e.w};
+    }
+    return res;
+}
+
 SubGraph from_vert(vector<int> vert, const Graph& graph, auto& edge_indexer) {
     SubGraph res;
     vector<vector<fast_fp>> c(vert.size(), vector<fast_fp>(vert.size(), 0));
@@ -122,25 +123,7 @@ SubGraph from_vert(vector<int> vert, const Graph& graph, auto& edge_indexer) {
     fast_fp best = inf;
     vector<int> coloring(vert.size());
 
-    auto calc = [&](int u, int max_c, fast_fp cur, auto&& rec) -> void {
-        if (u == vert.size()) {
-            best = min(best, cur);
-            return;
-        }
-        for (int clr = 0; clr <= max_c; ++clr) {
-            coloring[u] = clr;
-            fast_fp cur_copy = cur;
-            for (int v = 0; v < u; ++v) {
-                if (coloring[v] == clr) {
-                    cur_copy += c[u][v];
-                }
-            }
-            rec(u + 1, min(2, max(max_c, clr + 1)), cur_copy, rec);
-        }
-    };
-    calc(0, 0, 0, calc);
-
-    res.min_cost = best;
+    res.min_cost = SlowTrueGraphColoring(c);
 
     return res;
 }
@@ -312,7 +295,7 @@ pair<vector<SubGraph>, int> list_subgraphs(Graph graph) {
     auto res6 = list_cliques(graph, edge_indexer, 6);
     // auto res7 = list_cliques(graph, edge_indexer, 7);
 
-    auto res = unite({res4, res5, res6});//, res6, res7});
+    auto res = unite({res4, res5, res6});//, res5_w1, res7});
 
     cerr << "size = " << res.size() << '\n';
     return {res, edge_indexer.size()};

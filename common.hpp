@@ -123,7 +123,7 @@ struct Graph {
 const fast_fp inf = 1e9 + 7;
 fast_fp evaluate(const Graph& g, vector<int> coloring, bool print = false) {
     if (g.n != coloring.size()) {
-        std::cerr << "evaluate " << " graph size (" << g.n << ") and coloring size (" << coloring.size() << ") do not match\n";
+        std::cerr << "evaluate: " << " graph size (" << g.n << ") and coloring size (" << coloring.size() << ") do not match\n";
         return inf;
     }
 
@@ -134,7 +134,7 @@ fast_fp evaluate(const Graph& g, vector<int> coloring, bool print = false) {
         mn_clr = min(mn_clr, coloring[i]);
     }
     if (mx_clr - mn_clr + 1 > 3) {
-        std::cerr << "evaluate " << mx_clr - mn_clr + 1 << " > 3 colors are used \n";
+        std::cerr << "evaluate: " << mx_clr - mn_clr + 1 << " > 3 colors are used \n";
         return inf;
     }
 
@@ -169,6 +169,84 @@ struct SubGraph {
 };
 
 
+fast_fp SlowTrueGraphColoring(vector<vector<fast_fp>> graph_matrix) {
+    fast_fp best = inf;
+    vector<int> coloring(graph_matrix.size());
+
+    auto calc = [&](int u, int max_c, fast_fp cur, auto&& rec) -> void {
+        if (u == graph_matrix.size()) {
+            best = min(best, cur);
+            return;
+        }
+        for (int clr = 0; clr <= max_c; ++clr) {
+            coloring[u] = clr;
+            fast_fp cur_copy = cur;
+            for (int v = 0; v < u; ++v) {
+                if (coloring[v] == clr) {
+                    cur_copy += graph_matrix[u][v];
+                }
+            }
+            rec(u + 1, min(2, max(max_c, clr + 1)), cur_copy, rec);
+        }
+    };
+    calc(0, 0, 0, calc);
+
+    return best;
+}
+
+fast_fp evaluate(const Graph& g, const vector<SubGraph>& disjoint_subgraphs, bool print = false) { 
+    double score = 0;
+    vector<int> used_count(g.edge_list.size(), 0);
+
+    for (auto& subgraph : disjoint_subgraphs) {
+        for (int index : subgraph.e) {
+            if (used_count[index] != 0) {
+                std::cerr << "evaluate: " << " edge " << index << " used more than once\n";
+                return 0;
+            }
+            used_count[index] = 1;
+        }
+    }
+
+    for (auto& subgraph : disjoint_subgraphs) {
+        map<int, int> vert_reindex;
+        int it = 0;
+        for (int index : subgraph.e) {
+            auto [u, v, cost] = g.edge_list[index];
+            if (!vert_reindex.count(u)) {
+                vert_reindex[u] = it++;
+            }
+            if (!vert_reindex.count(v)) {
+                vert_reindex[v] = it++;
+            }
+        }
+        vector<vector<fast_fp>> subgraph_matrix(vert_reindex.size(), vector<fast_fp>(vert_reindex.size(), 0));
+        for (int index : subgraph.e) {
+            auto [u, v, cost] = g.edge_list[index];
+            u = vert_reindex[u];
+            v = vert_reindex[v];
+            subgraph_matrix[u][v] = cost;
+            subgraph_matrix[v][u] = cost;
+        }
+        score += SlowTrueGraphColoring(subgraph_matrix);
+    }
+
+    if (print) {
+        cout << "score: " << score << '\n';
+        cerr << "score: " << score << '\n';
+    
+        for (auto subgraph : disjoint_subgraphs) {
+            cout << subgraph.e.size() << " : ";
+            for (auto e_index : subgraph.e) {
+                cout << e_index << ' ';
+            }
+            cout << '\n';
+        }
+        cout << '\n';
+    }
+
+    return score;
+}
 
 double slow_timer() {
     return (double)clock() / CLOCKS_PER_SEC;

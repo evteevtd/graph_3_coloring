@@ -88,15 +88,11 @@ vector<int> baseline(Graph g) {
 signed main(int argc, char* argv[]) {
     Graph g;
 
-    if (argc == 1) {
-        int n = 20000;
-        int max_neighbors = 60;
-        fast_fp p_connection = 0.5;
+    g.read(argv[1]);
 
-        rng.seed(43);
-        g = gen(n, max_neighbors, p_connection);
-    } else {
-        g.read(argv[1]);
+    double GLOBAL_TL = 30;  // seconds    
+    if (argc >= 3) {
+        GLOBAL_TL = std::stof(argv[2]);
     }
 
     int n = g.n;
@@ -105,8 +101,8 @@ signed main(int argc, char* argv[]) {
     Coloring coloring(g, base_coloring);
 
     double start_tmp = (double)coloring.cur_error / n;
-    double end_tmp = start_tmp / 300;
-    double TL = 28 * 60; // sec
+    double end_tmp = start_tmp / 100;
+    double TL = GLOBAL_TL; // sec
 
     double k = log(end_tmp / start_tmp) / TL;
 
@@ -125,6 +121,8 @@ signed main(int argc, char* argv[]) {
     double best_error = coloring.cur_error;
 
     double log_freq = 20; // sec
+
+    cerr << "expected run time : " << GLOBAL_TL << " seconds\n";
 
     while (fast_timer() - start_time < TL) {
         ++total_steps;
